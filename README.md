@@ -17,3 +17,6 @@ rm null;
 Works on Windows 7 and 8.1. Haven't tested in Windows XP or 10, but it should work if PowerShell and .NET Framework 4.5 are installed. 
 
 The reason why I'm using .NET 4.5 is because of the async/wait pattern.
+
+# Copyrights
+The icon used in the application is a work from [GuillenDesign](http://www.iconarchive.com/show/variations-1-icons-by-guillendesign/Trash-full-2-icon.html)
