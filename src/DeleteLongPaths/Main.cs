@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Management.Automation;
+using System.Media;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,7 +14,7 @@ namespace DeleteLongPaths
     {
         public Main()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -72,14 +73,15 @@ namespace DeleteLongPaths
 
         private async Task<bool> DeleteFolder()
         {
-            ToggleProcessingAnimation(true);
+            ProcessIsRunning(true);
             var taskResult = await RunDeleteScriptAsync();
-            ToggleProcessingAnimation(false);
+            ProcessIsRunning(false);
             return taskResult;
         }
 
         private void ResetToInitialState()
         {
+            this.Text = @"Delete Long Paths";
             FolderToDeleteText.Text = null;
             UpdateStatus("Idle...");
             DeleteButtonToggle(false);
@@ -150,9 +152,23 @@ namespace DeleteLongPaths
             }
         }
 
-        private void ToggleProcessingAnimation(bool flag)
+        private void ProcessIsRunning(bool flag)
         {
-            ProcessingAnimation.Visible = flag;
+            if (flag)
+            {
+                this.Text = @"DLP: Working...";
+                DeleteFolderButton.Enabled = false;
+                SelectFolderButton.Enabled = false;
+                ProcessingAnimation.Visible = true;
+            }
+            else
+            {
+                this.Text = @"DLP: Task finished";
+                SelectFolderButton.Enabled = true;
+                ProcessingAnimation.Visible = false;
+                SystemSounds.Asterisk.Play();
+            }
+            
         }
 
         private void UpdateStatus(string statusMessage)
