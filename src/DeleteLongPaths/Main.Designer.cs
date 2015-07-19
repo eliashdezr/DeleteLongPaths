@@ -39,6 +39,7 @@ namespace DeleteLongPaths
             this.DeleteFolderButton = new System.Windows.Forms.Button();
             this.ProcessingAnimation = new System.Windows.Forms.PictureBox();
             this.AuthorLabel = new System.Windows.Forms.Label();
+            this.LabelAppVersion = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.ProcessingAnimation)).BeginInit();
             this.SuspendLayout();
             // 
@@ -125,11 +126,23 @@ namespace DeleteLongPaths
             this.AuthorLabel.Text = "@eliashdezr";
             this.AuthorLabel.Click += new System.EventHandler(this.AuthorLabel_Click);
             // 
+            // LabelAppVersion
+            // 
+            this.LabelAppVersion.AutoSize = true;
+            this.LabelAppVersion.Enabled = false;
+            this.LabelAppVersion.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.LabelAppVersion.Location = new System.Drawing.Point(386, 106);
+            this.LabelAppVersion.Name = "LabelAppVersion";
+            this.LabelAppVersion.Size = new System.Drawing.Size(37, 13);
+            this.LabelAppVersion.TabIndex = 8;
+            this.LabelAppVersion.Text = "v" + Application.ProductVersion;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(435, 126);
+            this.Controls.Add(this.LabelAppVersion);
             this.Controls.Add(this.AuthorLabel);
             this.Controls.Add(this.ProcessingAnimation);
             this.Controls.Add(this.DeleteFolderButton);
@@ -162,6 +175,7 @@ namespace DeleteLongPaths
         private System.Windows.Forms.Button DeleteFolderButton;
         private System.Windows.Forms.PictureBox ProcessingAnimation;
         private Label AuthorLabel;
+        private Label LabelAppVersion;
     }
 }
 

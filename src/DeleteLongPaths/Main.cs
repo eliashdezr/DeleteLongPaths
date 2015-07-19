@@ -1,19 +1,22 @@
 ﻿// Copyright (c) Elías Hernández. All Rights Reserved. Licensed under the MIT License.
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Management.Automation;
 using System.Media;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Alphaleonis.Win32.Filesystem;
+using GlobalResource;
 
 namespace DeleteLongPaths
 {
     public partial class Main : Form
     {
+        private static Stopwatch StopWatch;
         public Main()
         {
+            StopWatch = new Stopwatch();
             InitializeComponent();            
         }
 
@@ -26,7 +29,7 @@ namespace DeleteLongPaths
 
         private void AuthorLabel_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://github.com/eliashdezr");
+            Process.Start("https://github.com/eliashdezr");
         }
 
         private async void DeleteFolderButton_Click(object sender, EventArgs e)
@@ -38,7 +41,11 @@ namespace DeleteLongPaths
                 ResetToInitialState();
             }
 
-            await DeleteFolder();                        
+            ProcessIsRunning(true);
+
+            await RunDeleteTaskAsync();
+
+            ProcessIsRunning(false);             
         }
 
         private void SelectFolderButton_Click(object sender, EventArgs e)
@@ -58,8 +65,8 @@ namespace DeleteLongPaths
 
         private bool ConfirmDeleteAction()
         {
-            var confirmDeleteAction = MessageBox.Show(GlobalResource.Resources.ConfirmDeleteMessage,
-                GlobalResource.Resources.ConfirmDeleteTitle,
+            var confirmDeleteAction = MessageBox.Show(Resources.ConfirmDeleteMessage,
+                Resources.ConfirmDeleteTitle,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -71,14 +78,6 @@ namespace DeleteLongPaths
             DeleteFolderButton.Enabled = flag;
         }
 
-        private async Task<bool> DeleteFolder()
-        {
-            ProcessIsRunning(true);
-            var taskResult = await RunDeleteScriptAsync();
-            ProcessIsRunning(false);
-            return taskResult;
-        }
-
         private void ResetToInitialState()
         {
             this.Text = @"Delete Long Paths";
@@ -87,67 +86,36 @@ namespace DeleteLongPaths
             DeleteButtonToggle(false);
         }
 
-        private async Task<bool> RunDeleteScriptAsync()
-        {
-            // Try to ensure an unique folder name where the files are going to be linked.
-            var workingFolderName = Guid.NewGuid().ToString();
-
-            // Parent of the folder we are going to delete.
-            var parentFolder = Path.GetFullPath(Path.Combine(FolderToDeleteText.Text, @"..\"));
-
-            // Create the working directory.
-            UpdateStatus("Creating working folder...");
-            var workingFolderPath = Path.Combine(parentFolder, workingFolderName);
-            Directory.CreateDirectory(workingFolderPath);
-
-            // Run the script to mirror the files into the working folder.
-            UpdateStatus("Creating mirrors into the working directory, this will take a while...");
-            var scriptCreateMirror = string.Format("robocopy {0} {1} /s /mir", workingFolderPath,
-                FolderToDeleteText.Text);
-
-            if (await ScriptRunnerAsync(scriptCreateMirror) == false)
-            {
-                UpdateStatus("Error creating the file/folder mirrors in the working folder.");
-                return false;
-            }
-
-            // Run the script to delete folders.
-            UpdateStatus("Deleting the folder...");
-            var scriptDeleteFolder = string.Format("rmdir {0} -Recurse -Force; rmdir {1}", FolderToDeleteText.Text,
-                workingFolderPath);
-
-            if (await ScriptRunnerAsync(scriptDeleteFolder) == false)
-            {
-                UpdateStatus("Error deleting the folder.");
-                return false;
-            }
-
-            if (Directory.Exists(FolderToDeleteText.Text))
-            {
-                UpdateStatus("Folder could not be completely deleted, verify is not locked by a process.");
-            }
-            else
-            {
-                ResetToInitialState();
-                UpdateStatus("Folder succesfully deleted!");
-            }
-
-            return true;
-        }
-
-        private async Task<bool> ScriptRunnerAsync(string script)
+        private async Task<bool> RunDeleteTaskAsync()
         {
             try
             {
-                using (var powershell = PowerShell.Create())
+                UpdateStatus("Deleting...");
+
+                await Task.Factory.StartNew(path => Directory.Delete(FolderToDeleteText.Text, true, true), string.Empty);
+
+                StopWatch.Stop();
+
+                var timeElapsed = string.Format("{0} minutes {1} seconds", Math.Floor(StopWatch.Elapsed.TotalMinutes),
+                    StopWatch.Elapsed.ToString("ss"));
+
+                StopWatch.Reset();
+
+                if (Directory.Exists(FolderToDeleteText.Text))
                 {
-                    powershell.AddScript(script);
-                    await Task.Factory.FromAsync(powershell.BeginInvoke(), pResult => powershell.EndInvoke(pResult));
-                    return true;
+                    UpdateStatus("Folder could not be completely deleted, verify is not locked by a process.");
                 }
+                else
+                {
+                    ResetToInitialState();
+                    UpdateStatus(string.Format("Folder succesfully deleted! Took {0}.", timeElapsed));
+                }
+
+                return true;
             }
             catch (Exception e)
             {
+                UpdateStatus(e.Message);
                 return false;
             }
         }
@@ -156,19 +124,19 @@ namespace DeleteLongPaths
         {
             if (flag)
             {
+                StopWatch.Start();
                 this.Text = @"DLP: Working...";
                 DeleteFolderButton.Enabled = false;
                 SelectFolderButton.Enabled = false;
                 ProcessingAnimation.Visible = true;
             }
             else
-            {
+            {                
                 this.Text = @"DLP: Task finished";
                 SelectFolderButton.Enabled = true;
-                ProcessingAnimation.Visible = false;
-                SystemSounds.Asterisk.Play();
-            }
-            
+                ProcessingAnimation.Visible = false;                
+                SystemSounds.Asterisk.Play();                
+            }            
         }
 
         private void UpdateStatus(string statusMessage)
