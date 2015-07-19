@@ -5,7 +5,11 @@ The reason I made this little tool is because it was a pain trying to get rid of
 
 To prevent the character limit while deleting forlders I used the [AlphaFS](http://alphafs.alphaleonis.com/) set of libraries.
 
-**[Latest Download](https://github.com/eliashdezr/DeleteLongPaths/releases)**
+# Download
+[Latest](https://github.com/eliashdezr/DeleteLongPaths/releases/latest)
+
+If for some reason you're having issues with the latest. Try the [PowerShell](https://github.com/eliashdezr/DeleteLongPaths/releases/tag/1.1.0) version.
+
 
 # Performance
 Deleting ~72,000 small files and around ~17,000 folders takes ~17 seconds (SSD: PLEXTOR PX-128M3)
